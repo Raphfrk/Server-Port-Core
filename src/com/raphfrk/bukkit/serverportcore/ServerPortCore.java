@@ -8,6 +8,8 @@ import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event.Priority;
+import org.bukkit.event.Event.Type;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -19,6 +21,8 @@ import com.raphfrk.bukkit.eventlink.MyPropertiesFile;
 
 public class ServerPortCore extends JavaPlugin {
 
+	String globalHostname = null;
+	
 	File pluginDirectory;
 
 	static final String slash = System.getProperty("file.separator");
@@ -28,6 +32,8 @@ public class ServerPortCore extends JavaPlugin {
 	Server server;
 
 	PluginManager pm;
+	
+	ServerPortCoreCustomListener serverPortCoreCustomListener = new ServerPortCoreCustomListener(this);
 
 	static MiscUtils.LogInstance logger = MiscUtils.getLogger("[ServerPort]");
 	
@@ -49,7 +55,7 @@ public class ServerPortCore extends JavaPlugin {
 			return;
 		}
 
-		//		pm.registerEvent(Type.CUSTOM_EVENT, customListener, Priority.Normal, this);
+		pm.registerEvent(Type.CUSTOM_EVENT, serverPortCoreCustomListener, Priority.Normal, this);
 		//		pm.registerEvent(Type.PLAYER_JOIN, playerListener, Priority.Normal, this);
 		//		pm.registerEvent(Type.PLAYER_QUIT, playerListener, Priority.Normal, this);
 		//		pm.registerEvent(Type.WORLD_LOAD, worldListener, Priority.Normal, this);
@@ -58,9 +64,11 @@ public class ServerPortCore extends JavaPlugin {
 		
 		Plugin plugin = pm.getPlugin("EventLink");
 		if(!(plugin instanceof EventLink)) {
-			eventLink = (EventLink)plugin;
 			log("Unable to connect to EventLink - disabling plugin");
 			pm.disablePlugin(this);
+		} else {
+			log("Connected to eventLink");
+			eventLink = (EventLink)plugin;
 		}
 		
 		log(pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!");
@@ -86,10 +94,7 @@ public class ServerPortCore extends JavaPlugin {
 
 		pf.load();
 
-		String adminString = pf.getString("admin_list", "");
-		for( String current : adminString.split(",")) {
-			admins.add(current.toLowerCase());
-		}
+		globalHostname = pf.getString("global_hostname", "");
 
 		pf.save();
 
@@ -113,15 +118,40 @@ public class ServerPortCore extends JavaPlugin {
 			return true;
 		}
 
-		if(command.getName().equals("serverport")) {
-
-			commandSender.sendMessage("No commands are implemented yet for this plugin");
-
+		if(command.getName().equals("serverportcore")) {
+			
+			if(args.length > 1 && args[0].equals("tp")) {
+				ServerPortLocation target = new ServerPortLocation(args[1], null, 0, -1, 0, 0, 0);
+				
+				teleport(((Player)commandSender).getName(), target);
+				return true;
+				
+			}
+			
 		}
 
 		return false;
 
 	}
-
+	
+	boolean teleport(String playerName, ServerPortLocation target) {
+		
+		ServerPortLocation modifiedTarget = target;
+		
+		if(target.getServer() == null) {
+			modifiedTarget = new ServerPortLocation(target);
+			modifiedTarget.setServer(eventLink.getEntryLocation("worlds", target.getWorld()));
+		}
+		
+		if(modifiedTarget.getServer() == null) {
+			return false;
+		}
+		
+		ServerPortCoreSummonEvent summonEvent = new ServerPortCoreSummonEvent(modifiedTarget, playerName);
+		
+		return eventLink.sendEvent(modifiedTarget.getServer(), summonEvent);
+		
+	}
+	
 }
 
