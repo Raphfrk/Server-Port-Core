@@ -1,10 +1,7 @@
 package com.raphfrk.bukkit.serverportcore;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.CustomEventListener;
 import org.bukkit.event.Event;
-
-import com.raphfrk.bukkit.eventlink.EventLinkMessageEvent;
 
 public class ServerPortCoreCustomListener extends CustomEventListener {
 
@@ -17,32 +14,21 @@ public class ServerPortCoreCustomListener extends CustomEventListener {
 	public void onCustomEvent(Event event) {
 		if(event instanceof ServerPortCoreSummonEvent) {
 			onCustomEvent((ServerPortCoreSummonEvent)event);
+		} else if(event instanceof ServerPortCoreInventoryTransferEvent) {
+			onCustomEvent((ServerPortCoreInventoryTransferEvent)event);
 		}
 	}
-	
-	public void onCustomEvent(ServerPortCoreSummonEvent summonEvent) {
 
-		String globalHostname = summonEvent.getTargetGlobalHostname();
+	public void onCustomEvent(ServerPortCoreSummonEvent summonEvent) {
 		
-		if(summonEvent.getTargetGlobalHostname() == null) {
-			if(p.globalHostname != null) {
-				summonEvent.setTargetGlobalHostname(p.globalHostname);
-				String playerLocation = p.eventLink.getEntryLocation("players", summonEvent.getPlayerName());
+		p.teleportManager.summonRequest(summonEvent);
+
+	}
+
+	public void onCustomEvent(final ServerPortCoreInventoryTransferEvent inventoryEvent) {
+		
+		p.limboStore.writeToDatabase(inventoryEvent.getServerPortCoreInventory().getSlots());
 				
-				if(playerLocation != null) {
-					p.eventLink.sendEvent(playerLocation, summonEvent);
-				}
-			} else {
-				EventLinkMessageEvent.sendMessage(summonEvent.getPlayerName(), "Global hostname not set at target server, unable to teleport", p.eventLink);
-				p.log("Global hostname not set, unable to summon " + summonEvent.getPlayerName());
-			}
-		} else {
-			Player player = p.getServer().getPlayer( summonEvent.getPlayerName());
-			if(player != null) {
-				player.kickPlayer("[Serverport] You have teleported, please connect to : " + globalHostname);
-			} 
-		}
-		
 	}
 
 }

@@ -12,11 +12,11 @@ public class ServerPortLocation implements Serializable {
 
 	private String server;
 	private String world;
-	private double x;
-	private double y;
-	private double z;
-	private float pitch;
-	private float yaw;
+	private Double x;
+	private Double y;
+	private Double z;
+	private Float pitch;
+	private Float yaw;
 
 	public ServerPortLocation(String serverName, Location loc) {
 		this(
@@ -34,7 +34,7 @@ public class ServerPortLocation implements Serializable {
 		this(loc.getServer(), loc.getWorld(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 	}
 
-	public ServerPortLocation(String server, String world, double x, double y, double z, float yaw, float pitch) {
+	public ServerPortLocation(String server, String world, Double x, Double y, Double z, Float yaw, Float pitch) {
 		this.server = server;
 		this.world = world;
 		this.x = x;
@@ -64,7 +64,7 @@ public class ServerPortLocation implements Serializable {
 		this.x = x;
 	}
 
-	public double getX() {
+	public Double getX() {
 		return this.x;
 	}
 
@@ -72,7 +72,7 @@ public class ServerPortLocation implements Serializable {
 		this.y = y;
 	}
 
-	public double getY() {
+	public Double getY() {
 		return this.y;
 	}
 
@@ -80,7 +80,7 @@ public class ServerPortLocation implements Serializable {
 		this.z = z;
 	}
 
-	public double getZ() {
+	public Double getZ() {
 		return this.z;
 	}
 
@@ -88,7 +88,7 @@ public class ServerPortLocation implements Serializable {
 		this.yaw = yaw;
 	}
 
-	public float getYaw() {
+	public Float getYaw() {
 		return this.yaw;
 	}
 
@@ -96,7 +96,7 @@ public class ServerPortLocation implements Serializable {
 		this.pitch = pitch;
 	}
 
-	public float getPitch() {
+	public Float getPitch() {
 		return this.pitch;
 	}
 	

@@ -2,7 +2,11 @@ package com.raphfrk.bukkit.serverportcore;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+
+import javax.persistence.PersistenceException;
 
 import org.bukkit.Server;
 import org.bukkit.command.Command;
@@ -33,7 +37,13 @@ public class ServerPortCore extends JavaPlugin {
 
 	PluginManager pm;
 	
-	ServerPortCoreCustomListener serverPortCoreCustomListener = new ServerPortCoreCustomListener(this);
+	final ServerPortCoreCustomListener serverPortCoreCustomListener = new ServerPortCoreCustomListener(this);
+	
+	final ServerPortCorePlayerListener serverPortCorePlayerListener = new ServerPortCorePlayerListener(this);
+	
+	final TeleportManager teleportManager = new TeleportManager(this);
+	
+	final LimboStore limboStore = new LimboStore(this);
 
 	static MiscUtils.LogInstance logger = MiscUtils.getLogger("[ServerPort]");
 	
@@ -56,7 +66,7 @@ public class ServerPortCore extends JavaPlugin {
 		}
 
 		pm.registerEvent(Type.CUSTOM_EVENT, serverPortCoreCustomListener, Priority.Normal, this);
-		//		pm.registerEvent(Type.PLAYER_JOIN, playerListener, Priority.Normal, this);
+		pm.registerEvent(Type.PLAYER_JOIN, serverPortCorePlayerListener, Priority.Normal, this);
 		//		pm.registerEvent(Type.PLAYER_QUIT, playerListener, Priority.Normal, this);
 		//		pm.registerEvent(Type.WORLD_LOAD, worldListener, Priority.Normal, this);
 
@@ -70,6 +80,8 @@ public class ServerPortCore extends JavaPlugin {
 			log("Connected to eventLink");
 			eventLink = (EventLink)plugin;
 		}
+		
+		setupDatabase();
 		
 		log(pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!");
 		
@@ -101,6 +113,27 @@ public class ServerPortCore extends JavaPlugin {
 		return true;
 
 	}
+	
+	
+    private void setupDatabase() {
+        try {
+        	if(getDatabase() == null) {
+        		installDDL();
+        	} else {
+        		getDatabase().find(ServerPortCoreItemStack.class).findRowCount();
+        	}
+        } catch (PersistenceException ex) {
+            log("Creating initial database");
+            installDDL();
+        }
+    }
+    
+    @Override
+    public List<Class<?>> getDatabaseClasses() {
+        List<Class<?>> list = new ArrayList<Class<?>>();
+        list.add(ServerPortCoreItemStack.class);
+        return list;
+    }
 
 	public void log(String message) {
 		logger.log(message);
@@ -121,10 +154,23 @@ public class ServerPortCore extends JavaPlugin {
 		if(command.getName().equals("serverportcore")) {
 			
 			if(args.length > 1 && args[0].equals("tp")) {
-				ServerPortLocation target = new ServerPortLocation(args[1], null, 0, -1, 0, 0, 0);
 				
-				teleport(((Player)commandSender).getName(), target);
-				return true;
+				if(args.length == 2) {
+					ServerPortLocation target = new ServerPortLocation(args[1], null, null, null, null, null, null);
+
+					teleportManager.teleport(((Player)commandSender).getName(), target);
+					return true;
+				} else if (args.length == 5) {
+					try {
+						ServerPortLocation target = new ServerPortLocation(args[1], args[2], Double.parseDouble(args[3]), Double.parseDouble(args[3]), Double.parseDouble(args[3]), null, null);
+						teleportManager.teleport(((Player)commandSender).getName(), target);
+						return true;
+					} catch (NumberFormatException nfe) {
+						commandSender.sendMessage("Unable to parse command");
+						return true;
+					}
+					
+				}
 				
 			}
 			
@@ -134,24 +180,7 @@ public class ServerPortCore extends JavaPlugin {
 
 	}
 	
-	boolean teleport(String playerName, ServerPortLocation target) {
-		
-		ServerPortLocation modifiedTarget = target;
-		
-		if(target.getServer() == null) {
-			modifiedTarget = new ServerPortLocation(target);
-			modifiedTarget.setServer(eventLink.getEntryLocation("worlds", target.getWorld()));
-		}
-		
-		if(modifiedTarget.getServer() == null) {
-			return false;
-		}
-		
-		ServerPortCoreSummonEvent summonEvent = new ServerPortCoreSummonEvent(modifiedTarget, playerName);
-		
-		return eventLink.sendEvent(modifiedTarget.getServer(), summonEvent);
-		
-	}
+
 	
 }
 
