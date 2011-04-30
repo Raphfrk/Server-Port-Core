@@ -6,13 +6,13 @@ public class ServerPortCoreSummonEvent extends Event {
 	
 	private static final long serialVersionUID = 1L;
 
-	private final ServerPortLocation target;
+	private final SPLocation target;
 	private final String playerName;
 
 	private String targetGlobalHostname = null;
 
 	
-	ServerPortCoreSummonEvent(ServerPortLocation target, String playerName) {
+	ServerPortCoreSummonEvent(SPLocation target, String playerName) {
 		super("ServerPortCoreSummonEvent");
 		this.target = target;
 		this.playerName = playerName;
@@ -22,7 +22,7 @@ public class ServerPortCoreSummonEvent extends Event {
 		return playerName;
 	}
 	
-	ServerPortLocation getTarget() {
+	SPLocation getTarget() {
 		return target;
 	}
 	

@@ -7,13 +7,13 @@ public class ServerPortCoreInventoryTransferEvent extends Event {
 	
 	private static final long serialVersionUID = 1L;
 
-	private final ServerPortCoreInventory inventory;
+	private final SPInventory inventory;
 	private final String playerName;
 	private boolean outbound;
 	
 	ServerPortCoreInventoryTransferEvent(Player player) {
 		super("ServerPortCoreInventoryTransferEvent");
-		inventory = new ServerPortCoreInventory(player, true);
+		inventory = new SPInventory(player, true);
 		this.playerName = player.getName();		
 		outbound = true;
 	}
@@ -30,7 +30,7 @@ public class ServerPortCoreInventoryTransferEvent extends Event {
 		return playerName;
 	}
 	
-	public ServerPortCoreInventory getServerPortCoreInventory() {
+	public SPInventory getServerPortCoreInventory() {
 		return inventory;
 	}
 	
