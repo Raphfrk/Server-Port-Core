@@ -18,6 +18,7 @@ public class SPLocation implements Serializable {
 	private int id;
 	
 	@Column(unique=true, nullable=false)
+	//fdjkshfsdhkfsdjh // Add "warpName" as another field 
 	private String playerName;
 	private String server;
 	private String world;
