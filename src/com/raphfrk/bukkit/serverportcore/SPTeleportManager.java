@@ -87,23 +87,25 @@ public class SPTeleportManager {
 
 	}
 
-	boolean safeTeleport(Player player, Location loc) {
+	boolean safeTeleport(final Player player, final Location loc) {
 
 		final int cx = loc.getBlockX()>>4;
 		final int cz = loc.getBlockZ()>>4;
 
 		World world = loc.getWorld();
 		Chunk chunk = world.getChunkAt(cx, cz);
+		
+		gridLoad(world, cx, cz);
 
 		if(!world.isChunkLoaded(chunk)) {
 			world.loadChunk(chunk);
 		}
 
-		Location locCopy= loc.clone();
+		Location locCopy = loc.clone();
 
 		locCopy.setY(locCopy.getBlockY());		
 		Block block = locCopy.getBlock();
-		boolean bottomFilled = block.getTypeId() == 0;
+		boolean bottomFilled = block.getTypeId() != 0;
 		boolean newBottomFilled;
 		block = block.getRelative(BlockFace.UP);
 
@@ -112,8 +114,24 @@ public class SPTeleportManager {
 			block = block.getRelative(BlockFace.UP);
 			locCopy.setY(block.getY()-1);
 		}
-
+		
 		return player.teleport(locCopy);
 
+	}
+	
+	void gridLoad(World world, int x, int z) {
+		
+		world.loadChunk(x, z);
+		
+		for(int xx=-2;xx<3;xx++) {
+			for(int zz=-2;zz<3;zz++) {
+				world.loadChunk(x+xx, z+zz);
+			}
+		}
+		
+		world.loadChunk(x, z);
+
+		
+		
 	}
 }
