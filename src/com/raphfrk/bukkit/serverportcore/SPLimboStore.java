@@ -6,7 +6,7 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import com.avaje.ebean.EbeanServer;
+import com.raphfrk.bukkit.serverportcoreapi.ServerPortLocation;
 
 public class SPLimboStore {
 
@@ -19,7 +19,7 @@ public class SPLimboStore {
 	void updateInventoryFromDatabase(Player player) {
 		String playerName = player.getName();
 
-		List<SPItemStack> stacks = p.eb.find(SPItemStack.class).where().ieq("playerName", playerName).findList();
+		List<SPItemStack> stacks = p.eb.find(SPItemStack.class).where().ieq("name",   playerName).findList();
 
 		p.eb.beginTransaction();
 
@@ -56,24 +56,31 @@ public class SPLimboStore {
 
 	}
 
-	void writeLocationToDatabase(SPLocation location) {
+	void writeLocationToDatabase(ServerPortLocation location) {
 
 		p.eb.beginTransaction();
 		try {
 
-			String playerName = location.getPlayerName();
+			String playerName = location.getName();
 
-			SPLocation oldLoc = null;
+			ServerPortLocation oldLoc = null;
 			do {		
-				oldLoc = p.eb.find(SPLocation.class).where().ieq("playerName", playerName).findUnique();
+				oldLoc = p.eb.find(ServerPortLocation.class).where().ieq("name", playerName).findUnique();
 				if(oldLoc != null) {
+					System.out.println("Deleting old version");
 					p.eb.delete(oldLoc);
 				}
 			} while (oldLoc != null);
 
+			ServerPortLocation toSave = location.clone();
+			
+			toSave.setName( location.getName());
+			System.out.println("Saving to name " + toSave.getName());
 			p.eb.save(location);
+			
+			
 		} finally {
-			p.eb.endTransaction();
+			p.eb.commitTransaction();
 		}
 
 
@@ -82,24 +89,20 @@ public class SPLimboStore {
 
 	void updateLocationFromDatabase(Player player) {
 
-		SPLocation loc;
-		
-		p.eb.beginTransaction();
-		try {
+		ServerPortLocation loc;
 
-		String playerName = player.getName();
+			String playerName =  player.getName();
 
-		loc = p.eb.find(SPLocation.class).where().ieq("playerName", playerName).findUnique();
+			System.out.println("Searching with playername = " + playerName);
+			loc = p.eb.find(ServerPortLocation.class).where().ieq("name",   playerName).findUnique();
 
-		if(loc != null) {
-			p.eb.delete(loc);
-		}
-		} finally {
-			p.eb.commitTransaction();
-		}
+			if(loc != null) {
+				System.out.println("match found");
+				p.eb.delete(loc);
+			}
 
 		if(loc != null) {
-			Location bukkitLoc = loc.getLocation(p.teleportManager);
+			Location bukkitLoc = loc.getLocation(p.handler);
 			if(bukkitLoc != null) {
 				p.teleportManager.safeTeleport(player, bukkitLoc);
 			} else {

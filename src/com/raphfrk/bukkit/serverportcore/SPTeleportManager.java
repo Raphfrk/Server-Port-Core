@@ -8,6 +8,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
+import com.raphfrk.bukkit.serverportcoreapi.ServerPortLocation;
+
 public class SPTeleportManager {
 
 	ServerPortCore p;
@@ -24,12 +26,12 @@ public class SPTeleportManager {
 		return p.getServer();
 	}
 
-	boolean teleport(String playerName, SPLocation target) {
+	boolean teleport(String playerName, ServerPortLocation target) {
 
-		SPLocation modifiedTarget = target;
+		ServerPortLocation modifiedTarget = target;
 
 		if(target.getServer() == null) {
-			modifiedTarget = new SPLocation(target);
+			modifiedTarget = new ServerPortLocation(target);
 			modifiedTarget.setServer(p.eventLink.getEntryLocation("worlds", target.getWorld()));
 		}
 
@@ -46,8 +48,8 @@ public class SPTeleportManager {
 	void summonRequest(ServerPortCoreSummonEvent summonEvent) {
 
 		Player player = p.getServer().getPlayer(summonEvent.getPlayerName());
-		SPLocation target = summonEvent.getTarget(); 
-		Location loc = target.getLocation(this);
+		ServerPortLocation target = summonEvent.getTarget(); 
+		Location loc = target.getLocation(p.handler);
 
 		if(player != null && loc != null) {
 			p.teleportManager.safeTeleport(player,loc);
@@ -60,8 +62,8 @@ public class SPTeleportManager {
 				String playerLocation = p.eventLink.getEntryLocation("players", summonEvent.getPlayerName());
 
 				if(playerLocation != null) {
-					if(target.getPlayerName() == null) {
-						target.setPlayerName(summonEvent.getPlayerName());
+					if(target.getName() == null) {
+						target.setName(summonEvent.getPlayerName());
 					}
 					p.limboStore.writeLocationToDatabase(summonEvent.getTarget());
 					p.eventLink.sendEvent(playerLocation, summonEvent);
@@ -89,6 +91,8 @@ public class SPTeleportManager {
 
 	boolean safeTeleport(final Player player, final Location loc) {
 
+		System.out.println("Safe teleporting " + player + " to " + loc);
+		
 		final int cx = loc.getBlockX()>>4;
 		final int cz = loc.getBlockZ()>>4;
 

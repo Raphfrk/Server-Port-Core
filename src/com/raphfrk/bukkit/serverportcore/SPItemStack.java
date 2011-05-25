@@ -20,7 +20,7 @@ public class SPItemStack implements Serializable {
 	}
 
 	public SPItemStack(String playerName, boolean armour, int slot, ItemStack itemStack) {
-		this.playerName = playerName;
+		this.name = playerName;
 		this.armour = armour;
 		this.slot = slot;
 		setStack(itemStack);
@@ -29,7 +29,7 @@ public class SPItemStack implements Serializable {
 	@Id
 	private int id;
 	
-	private String playerName;
+	private String name;
 	
 	private int typeId;
 	private int amount;
@@ -39,7 +39,7 @@ public class SPItemStack implements Serializable {
 	
 	@Override
 	public String toString() {
-		return "[" + playerName + ": " + amount + " of " + typeId + " (" + damage + ") @" + slot + " (" + (armour?("ARMOUR)"):"MAIN)");
+		return "[" + name + ": " + amount + " of " + typeId + " (" + damage + ") @" + slot + " (" + (armour?("ARMOUR)"):"MAIN)");
 	}
 	
 	public int getId() {
@@ -50,12 +50,12 @@ public class SPItemStack implements Serializable {
 		this.id = id;
 	}
 	
-	public void setPlayerName(String playerName) {
-		this.playerName = playerName;
+	public void setName(String name) {
+		this.name = name;
 	}
 	
-	public String getPlayerName() {
-		return playerName;
+	public String getName() {
+		return name;
 	}
 	
 	public void setTypeId(int typeId) {
@@ -118,7 +118,7 @@ public class SPItemStack implements Serializable {
 	}
 	
 	public void copy(SPItemStack itemStack) {
-		this.playerName = itemStack.getPlayerName();
+		this.name = itemStack.getName();
 		setStack(itemStack.getStack());
 	}
 	

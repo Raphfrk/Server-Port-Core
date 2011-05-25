@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.persistence.PersistenceException;
 
@@ -18,11 +17,15 @@ import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.ServicePriority;
+import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.avaje.ebean.EbeanServer;
 import com.raphfrk.bukkit.eventlinkapi.EventLinkAPI;
-import com.raphfrk.bukkit.eventlinkapi.EventLinkSetupEvent;
+import com.raphfrk.bukkit.serverportcoreapi.ServerPortCoreAPI;
+import com.raphfrk.bukkit.serverportcoreapi.ServerPortLocation;
 
 public class ServerPortCore extends JavaPlugin {
 
@@ -37,6 +40,7 @@ public class ServerPortCore extends JavaPlugin {
 	Server server;
 
 	PluginManager pm;
+	ServicesManager sm;
 
 	final SPCustomListener serverPortCoreCustomListener = new SPCustomListener(this);
 
@@ -46,9 +50,11 @@ public class ServerPortCore extends JavaPlugin {
 
 	final SPLimboStore limboStore = new SPLimboStore(this);
 
+	final ServerPortCoreAPI handler = new SPCoreAPI(this);
+
 	EbeanServer eb;
 
-	static MiscUtils.LogInstance logger = MiscUtils.getLogger("[ServerPort]");
+	static MiscUtils.LogInstance logger = MiscUtils.getLogger("[ServerPortCore]");
 
 	EventLinkAPI eventLink;
 
@@ -59,17 +65,22 @@ public class ServerPortCore extends JavaPlugin {
 
 		PluginDescriptionFile pdfFile = this.getDescription();
 
-		eventLink = getEventLinkAPI();
+		RegisteredServiceProvider<EventLinkAPI> eventLinkProvider = sm.getRegistration(EventLinkAPI.class);
+		eventLink = eventLinkProvider.getProvider();
 
 		if(eventLink == null) {
-			Logger logger = Logger.getLogger("Minecraft");
-			logger.warning(pdfFile.getName() + " requires EventLink");
+			log(pdfFile.getName() + " requires EventLink");
+			pm.disablePlugin(this);
+			return;
+		} else {
+			log("Connected to Event Link API service");
 		}
 
 		pluginDirectory = this.getDataFolder();
 
 		if( !readConfig() ) {
 			log("Unable to read configs or create dirs, ServerPort core failed to start");
+			pm.disablePlugin(this);
 			return;
 		}
 
@@ -84,23 +95,13 @@ public class ServerPortCore extends JavaPlugin {
 
 	}
 
-	EventLinkAPI getEventLinkAPI(){
-		//try {
-		EventLinkSetupEvent connectionEvent = new EventLinkSetupEvent();
-		getServer().getPluginManager().callEvent(connectionEvent);
-		return connectionEvent.getEventLinkAPI();
-		//} catch (ClassNotFoundException cnfe) {
-		//	return null;
-		//} 
-	}
-
 	public void onDisable() {
 	}
 
 	@Override
 	public void onLoad() {
-		new SPItemStack();
-		new SPLocation();
+		sm = getServer().getServicesManager();
+		sm.register(ServerPortCoreAPI.class, handler, this, ServicePriority.Normal);
 	}
 
 	private boolean readConfig() {
@@ -123,44 +124,58 @@ public class ServerPortCore extends JavaPlugin {
 		String normalWorlds = pf.getString("normal_worlds","");
 
 		pf.save();
-		
+
 		loadWorlds(normalWorlds, Environment.NORMAL);
 		loadWorlds(netherWorlds, Environment.NETHER);
 
 		return true;
 
 	}
-	
+
 	void loadWorlds(String worlds, Environment env) {
 		for(String world : worlds.split(",")) {
 			if(world.trim().length()==0) {
 				continue;
 			}
 			log("Loading world: " + world);
-			
+
 			getServer().createWorld(world, env);
 		}
 	}
 
+	List<Class<?>> outdatedClasses = new ArrayList<Class<?>>();
 
 	private void setupDatabase() {
 		eb = getDatabase();
-		try {
-			eb.find(SPItemStack.class).findRowCount();
-			eb.find(SPLocation.class).findRowCount();
-		} catch (PersistenceException ex) {
-			log("Creating initial database");
-			installDDL();
-			eb = getDatabase();
+		synchronized(outdatedClasses) {
+			outdatedClasses.clear();
+			boolean refresh = false;
+			refresh |= checkTable(ServerPortLocation.class);
+			refresh |= checkTable(SPItemStack.class);
+			if(refresh) {
+				log("Updating database");
+				installDDL();
+				eb = getDatabase();
+			}
 		}
+	}
 
+	boolean checkTable(Class<?> c) {
+		synchronized(outdatedClasses) {
+			try {
+				eb.find(c).findRowCount();
+				return false;
+			} catch (PersistenceException ex) {
+				return true;
+			}
+		}
 	}
 
 	@Override
 	public List<Class<?>> getDatabaseClasses() {
-		List<Class<?>> list = new ArrayList<Class<?>>();
+		ArrayList<Class<?>> list = new ArrayList<Class<?>>();
+		list.add(ServerPortLocation.class);
 		list.add(SPItemStack.class);
-		list.add(SPLocation.class);
 		return list;
 	}
 
@@ -185,11 +200,11 @@ public class ServerPortCore extends JavaPlugin {
 			if(commandSender instanceof Player && args.length > 1 && args[0].equals("tp")) {
 
 				if(args.length == 2) {
-					SPLocation target;
+					ServerPortLocation target;
 					if(eventLink.getEntryLocation("worlds", args[1]) != null) {
-						target = new SPLocation(null, args[1], null, null, null, null, null);
+						target = new ServerPortLocation(null, args[1], null, null, null, null, null);
 					} else if(eventLink.getEntryLocation("worlds", args[1]) != null) {
-						target = new SPLocation(args[1], null, null, null, null, null, null);
+						target = new ServerPortLocation(args[1], null, null, null, null, null, null);
 					} else {
 						commandSender.sendMessage(args[1] + " is not a known world or server");
 						return true;
@@ -198,7 +213,7 @@ public class ServerPortCore extends JavaPlugin {
 					return true;
 				} else if (args.length == 6) {
 					try {
-						SPLocation target = new SPLocation(args[1], args[2], Double.parseDouble(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), null, null);
+						ServerPortLocation target = new ServerPortLocation(args[1], args[2], Double.parseDouble(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), null, null);
 						teleportManager.teleport(((Player)commandSender).getName(), target);
 						return true;
 					} catch (NumberFormatException nfe) {
