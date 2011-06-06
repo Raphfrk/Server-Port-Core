@@ -9,16 +9,19 @@ import javax.persistence.Id;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+import com.raphfrk.bukkit.serverportcoreapi.ServerPortCoreAPI;
+import com.raphfrk.bukkit.serverportcoreapi.ServerPortLocation;
+
 @Entity
-public class SPLocation implements Serializable {
+public class SPLocation implements Serializable, ServerPortLocation {
 
 	private static final long serialVersionUID = 1L;
 
 	@Id
 	private int id;
-	
+
 	@Column(unique=true, nullable=false)
-	//fdjkshfsdhkfsdjh // Add "warpName" as another field 
+	private String name;
 	private String playerName;
 	private String server;
 	private String world;
@@ -27,7 +30,7 @@ public class SPLocation implements Serializable {
 	private Double z;
 	private Float pitch;
 	private Float yaw;
-	
+
 	public SPLocation() {
 	}
 
@@ -35,15 +38,19 @@ public class SPLocation implements Serializable {
 		this(
 				serverName, 
 				(loc.getWorld()==null)?null:(loc.getWorld().getName()), 
-				loc.getX(),
-				loc.getY(),
-				loc.getZ(),
-				loc.getPitch(),
-				loc.getYaw()
-				);
+						loc.getX(),
+						loc.getY(),
+						loc.getZ(),
+						loc.getPitch(),
+						loc.getYaw()
+		);
 	}
 
 	public SPLocation(SPLocation loc) {
+		this(loc.getServer(), loc.getWorld(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+	}
+
+	public SPLocation(ServerPortLocation loc) {
 		this(loc.getServer(), loc.getWorld(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 	}
 
@@ -56,19 +63,19 @@ public class SPLocation implements Serializable {
 		this.pitch = pitch;
 		this.yaw = yaw;
 	}
-	
+
 	public void setId(int id) {
 		this.id = id;
 	}
-	
+
 	public int getId() {
 		return id;
 	}
-	
+
 	public void setPlayerName(String playerName) {
 		this.playerName = playerName;
 	}
-	
+
 	public String getPlayerName() {
 		return playerName;
 	}
@@ -128,11 +135,11 @@ public class SPLocation implements Serializable {
 	public Float getPitch() {
 		return this.pitch;
 	}
-	
+
 	Location getLocation() {
 		return new Location(null, x, y, z, yaw, pitch);
 	}
-	
+
 	Location getLocation(SPTeleportManager teleportManager) {
 
 		String pluginServerName = teleportManager.getServerName();
@@ -146,11 +153,11 @@ public class SPLocation implements Serializable {
 				return null;
 			}
 		}
-		
+
 		if(bukkitWorld == null) {
 			bukkitWorld = teleportManager.p.getServer().getWorlds().get(0);
 		}
-		
+
 		if(x==null || y==null || z==null) {
 			Location spawn = bukkitWorld.getSpawnLocation();
 			spawn.setX(spawn.getX() + 0.5);
@@ -162,5 +169,47 @@ public class SPLocation implements Serializable {
 			return new Location(bukkitWorld, x, y, z, yaw, pitch);
 		}
 	}
-	
+
+	public Location getLocation(ServerPortCoreAPI serverPortCoreAPI) {
+		
+		String pluginServerName = serverPortCoreAPI.getLocalServerName();
+		
+		if(server != null && !server.equals(pluginServerName)) {
+			return null;
+		}
+		
+		World bukkitWorld = null;
+		
+		if(world != null) {
+			bukkitWorld = serverPortCoreAPI.getLocalServer().getWorld(this.world);
+			if(bukkitWorld == null) {
+				return null;
+			}
+		}
+
+		if(bukkitWorld == null) {
+			bukkitWorld = serverPortCoreAPI.getLocalServer().getWorlds().get(0);
+		}
+
+		if(x==null || y==null || z==null) {
+			Location spawnPosition = bukkitWorld.getSpawnLocation();
+			spawnPosition.setX(spawnPosition.getX() + 0.5);
+			spawnPosition.setZ(spawnPosition.getZ() + 0.5);
+			return spawnPosition;
+		} else if(pitch == null || yaw == null) {
+			return new Location(bukkitWorld, x, y, z);
+		} else {
+			return new Location(bukkitWorld, x, y, z, yaw, pitch);
+		}
+
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
 }

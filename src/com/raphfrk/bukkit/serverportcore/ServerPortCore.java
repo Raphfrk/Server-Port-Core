@@ -150,7 +150,7 @@ public class ServerPortCore extends JavaPlugin {
 		synchronized(outdatedClasses) {
 			outdatedClasses.clear();
 			boolean refresh = false;
-			refresh |= checkTable(ServerPortLocation.class);
+			refresh |= checkTable(SPLocation.class);
 			refresh |= checkTable(SPItemStack.class);
 			if(refresh) {
 				log("Updating database");
@@ -174,7 +174,7 @@ public class ServerPortCore extends JavaPlugin {
 	@Override
 	public List<Class<?>> getDatabaseClasses() {
 		ArrayList<Class<?>> list = new ArrayList<Class<?>>();
-		list.add(ServerPortLocation.class);
+		list.add(SPLocation.class);
 		list.add(SPItemStack.class);
 		return list;
 	}
@@ -202,9 +202,9 @@ public class ServerPortCore extends JavaPlugin {
 				if(args.length == 2) {
 					ServerPortLocation target;
 					if(eventLink.getEntryLocation("worlds", args[1]) != null) {
-						target = new ServerPortLocation(null, args[1], null, null, null, null, null);
+						target = new SPLocation(null, args[1], null, null, null, null, null);
 					} else if(eventLink.getEntryLocation("worlds", args[1]) != null) {
-						target = new ServerPortLocation(args[1], null, null, null, null, null, null);
+						target = new SPLocation(args[1], null, null, null, null, null, null);
 					} else {
 						commandSender.sendMessage(args[1] + " is not a known world or server");
 						return true;
@@ -213,7 +213,7 @@ public class ServerPortCore extends JavaPlugin {
 					return true;
 				} else if (args.length == 6) {
 					try {
-						ServerPortLocation target = new ServerPortLocation(args[1], args[2], Double.parseDouble(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), null, null);
+						ServerPortLocation target = new SPLocation(args[1], args[2], Double.parseDouble(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), null, null);
 						teleportManager.teleport(((Player)commandSender).getName(), target);
 						return true;
 					} catch (NumberFormatException nfe) {

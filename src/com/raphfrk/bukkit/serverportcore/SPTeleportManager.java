@@ -31,7 +31,7 @@ public class SPTeleportManager {
 		ServerPortLocation modifiedTarget = target;
 
 		if(target.getServer() == null) {
-			modifiedTarget = new ServerPortLocation(target);
+			modifiedTarget = (ServerPortLocation)new SPLocation(modifiedTarget);
 			modifiedTarget.setServer(p.eventLink.getEntryLocation("worlds", target.getWorld()));
 		}
 

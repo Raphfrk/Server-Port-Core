@@ -14,7 +14,7 @@ public class ServerPortCoreSummonEvent extends Event {
 	private String targetGlobalHostname = null;
 
 	
-	ServerPortCoreSummonEvent(ServerPortLocation target, String playerName) {
+	public ServerPortCoreSummonEvent(ServerPortLocation target, String playerName) {
 		super("ServerPortCoreSummonEvent");
 		this.target = target;
 		this.playerName = playerName;

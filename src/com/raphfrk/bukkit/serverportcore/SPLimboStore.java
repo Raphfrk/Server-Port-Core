@@ -63,22 +63,22 @@ public class SPLimboStore {
 
 			String playerName = location.getName();
 
-			ServerPortLocation oldLoc = null;
+			SPLocation oldLoc = null;
 			do {		
-				oldLoc = p.eb.find(ServerPortLocation.class).where().ieq("name", playerName).findUnique();
+				oldLoc = p.eb.find(SPLocation.class).where().ieq("name", playerName).findUnique();
 				if(oldLoc != null) {
 					System.out.println("Deleting old version");
 					p.eb.delete(oldLoc);
 				}
 			} while (oldLoc != null);
 
-			ServerPortLocation toSave = location.clone();
-			
+			SPLocation toSave = new SPLocation(location);
+
 			toSave.setName( location.getName());
-			System.out.println("Saving to name " + toSave.getName());
-			p.eb.save(location);
-			
-			
+
+			p.eb.save(toSave);
+
+
 		} finally {
 			p.eb.commitTransaction();
 		}
@@ -89,17 +89,15 @@ public class SPLimboStore {
 
 	void updateLocationFromDatabase(Player player) {
 
-		ServerPortLocation loc;
+		SPLocation loc;
 
-			String playerName =  player.getName();
+		String playerName =  player.getName();
 
-			System.out.println("Searching with playername = " + playerName);
-			loc = p.eb.find(ServerPortLocation.class).where().ieq("name",   playerName).findUnique();
+		loc = p.eb.find(SPLocation.class).where().ieq("name",   playerName).findUnique();
 
-			if(loc != null) {
-				System.out.println("match found");
-				p.eb.delete(loc);
-			}
+		if(loc != null) {
+			p.eb.delete(loc);
+		}
 
 		if(loc != null) {
 			Location bukkitLoc = loc.getLocation(p.handler);

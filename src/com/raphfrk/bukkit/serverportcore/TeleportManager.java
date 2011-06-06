@@ -2,8 +2,6 @@ package com.raphfrk.bukkit.serverportcore;
 
 import org.bukkit.entity.Player;
 
-import com.raphfrk.bukkit.eventlink.EventLinkMessageEvent;
-
 public class TeleportManager {
 
 	ServerPortCore p;
@@ -12,12 +10,12 @@ public class TeleportManager {
 		this.p = p;
 	}
 
-	boolean teleport(String playerName, ServerPortLocation target) {
+	boolean teleport(String playerName, SPLocation target) {
 
-		ServerPortLocation modifiedTarget = target;
+		SPLocation modifiedTarget = target;
 
 		if(target.getServer() == null) {
-			modifiedTarget = new ServerPortLocation(target);
+			modifiedTarget = new SPLocation(target);
 			modifiedTarget.setServer(p.eventLink.getEntryLocation("worlds", target.getWorld()));
 		}
 
@@ -42,7 +40,7 @@ public class TeleportManager {
 					p.eventLink.sendEvent(playerLocation, summonEvent);
 				}
 			} else {
-				EventLinkMessageEvent.sendMessage(summonEvent.getPlayerName(), "Global hostname not set at target server, unable to teleport", p.eventLink);
+				p.eventLink.sendMessage(summonEvent.getPlayerName(), "Global hostname not set at target server, unable to teleport");
 				p.log("Global hostname not set, unable to summon " + summonEvent.getPlayerName());
 			}
 		} else {
@@ -56,7 +54,7 @@ public class TeleportManager {
 					if(p.eventLink.sendEvent(targetServer, invEvent)) {
 						player.kickPlayer("[Serverport] You have teleported, please connect to : " + summonEvent.getTargetGlobalHostname());
 					} else {
-						ServerPortCoreItemStack.addInventory(player, invEvent.getServerPortCoreInventory().getSlots());
+						SPItemStack.addInventory(player, invEvent.getServerPortCoreInventory().getSlots());
 					}
 				}
 			}

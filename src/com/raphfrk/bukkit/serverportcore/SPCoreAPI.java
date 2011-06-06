@@ -3,6 +3,7 @@ package com.raphfrk.bukkit.serverportcore;
 import org.bukkit.Server;
 
 import com.raphfrk.bukkit.serverportcoreapi.ServerPortCoreAPI;
+import com.raphfrk.bukkit.serverportcoreapi.ServerPortLocation;
 
 public class SPCoreAPI implements ServerPortCoreAPI {
 	
@@ -24,4 +25,10 @@ public class SPCoreAPI implements ServerPortCoreAPI {
 		return p.getServer();
 	}
 
+	public boolean teleport(String playerName, ServerPortLocation target) {
+		
+		return p.teleportManager.teleport(playerName, target);
+		
+	}
+	
 }
