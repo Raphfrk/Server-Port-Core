@@ -17,6 +17,7 @@ public class SPPlayerListener extends PlayerListener {
 		Player player = event.getPlayer();
 		
 		p.limboStore.updateInventoryFromDatabase(player);
+		p.limboStore.updateHealthFromDatabase(player);
 		p.limboStore.updateLocationFromDatabase(player);
 		
 	}

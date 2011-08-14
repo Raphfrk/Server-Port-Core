@@ -152,6 +152,7 @@ public class ServerPortCore extends JavaPlugin {
 			boolean refresh = false;
 			refresh |= checkTable(SPLocation.class);
 			refresh |= checkTable(SPItemStack.class);
+			refresh |= checkTable(SPHealth.class);
 			if(refresh) {
 				log("Updating database");
 				installDDL();
@@ -176,6 +177,7 @@ public class ServerPortCore extends JavaPlugin {
 		ArrayList<Class<?>> list = new ArrayList<Class<?>>();
 		list.add(SPLocation.class);
 		list.add(SPItemStack.class);
+		list.add(SPHealth.class);
 		return list;
 	}
 

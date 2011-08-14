@@ -77,6 +77,9 @@ public class SPTeleportManager {
 				String targetServer = summonEvent.getTarget().getServer();
 				if(targetServer != null) {
 					ServerPortCoreInventoryTransferEvent invEvent = new ServerPortCoreInventoryTransferEvent(player);
+					
+					ServerPortCoreHealthTransferEvent healthEvent = new ServerPortCoreHealthTransferEvent(player);
+					p.eventLink.sendEvent(targetServer, healthEvent);
 
 					if(p.eventLink.sendEvent(targetServer, invEvent)) {
 						player.kickPlayer("[Serverport] You have teleported, please connect to : " + summonEvent.getTargetGlobalHostname());

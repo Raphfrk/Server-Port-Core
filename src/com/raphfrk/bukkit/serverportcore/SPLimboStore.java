@@ -55,6 +55,54 @@ public class SPLimboStore {
 		}
 
 	}
+	
+	void writeHealthToDatabase(SPHealth health) {
+		
+		p.eb.beginTransaction();
+		try {
+
+			String playerName = health.getName();
+
+			SPHealth oldHealth = null;
+			do {		
+				oldHealth = p.eb.find(SPHealth.class).where().ieq("name", playerName).findUnique();
+				if(oldHealth != null) {
+					System.out.println("Deleting old version");
+					p.eb.delete(oldHealth);
+				}
+			} while (oldHealth != null);
+
+			p.eb.save(health);
+
+
+		} finally {
+			p.eb.commitTransaction();
+		}
+	}
+	
+	void updateHealthFromDatabase(Player player) {
+
+		SPHealth health;
+
+		String playerName =  player.getName();
+
+		health = p.eb.find(SPHealth.class).where().ieq("name",   playerName).findUnique();
+
+		System.out.println("Updating from database: " + health);
+		
+		if(health != null) {
+			p.eb.delete(health);
+
+			int healthValue = health.getHealth();
+			if(healthValue < 0) {
+				healthValue = 0;
+			} else if (healthValue > 20){
+				healthValue = 20;
+			}
+			player.setHealth(healthValue);
+		} 
+
+	}
 
 	void writeLocationToDatabase(ServerPortLocation location) {
 

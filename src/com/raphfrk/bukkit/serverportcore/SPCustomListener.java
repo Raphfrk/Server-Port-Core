@@ -16,6 +16,8 @@ public class SPCustomListener extends CustomEventListener {
 			onCustomEvent((ServerPortCoreSummonEvent)event);
 		} else if(event instanceof ServerPortCoreInventoryTransferEvent) {
 			onCustomEvent((ServerPortCoreInventoryTransferEvent)event);
+		} else if(event instanceof ServerPortCoreHealthTransferEvent) {
+			onCustomEvent((ServerPortCoreHealthTransferEvent)event);
 		}
 	}
 
@@ -29,6 +31,12 @@ public class SPCustomListener extends CustomEventListener {
 		
 		p.limboStore.writeStacksToDatabase(inventoryEvent.getServerPortCoreInventory().getSlots());
 				
+	}
+	
+	public void onCustomEvent(final ServerPortCoreHealthTransferEvent healthEvent) {
+		
+		p.limboStore.writeHealthToDatabase(healthEvent.getHealth());
+		
 	}
 
 }
