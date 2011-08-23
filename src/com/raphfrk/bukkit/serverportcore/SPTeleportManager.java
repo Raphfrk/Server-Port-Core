@@ -76,15 +76,19 @@ public class SPTeleportManager {
 			if(player!=null) {
 				String targetServer = summonEvent.getTarget().getServer();
 				if(targetServer != null) {
-					ServerPortCoreInventoryTransferEvent invEvent = new ServerPortCoreInventoryTransferEvent(player);
-					
-					ServerPortCoreHealthTransferEvent healthEvent = new ServerPortCoreHealthTransferEvent(player);
-					p.eventLink.sendEvent(targetServer, healthEvent);
+					if (!p.invBlockedServers.contains(targetServer)) {
+						ServerPortCoreInventoryTransferEvent invEvent = new ServerPortCoreInventoryTransferEvent(player);
 
-					if(p.eventLink.sendEvent(targetServer, invEvent)) {
-						player.kickPlayer("[Serverport] You have teleported, please connect to : " + summonEvent.getTargetGlobalHostname());
+						ServerPortCoreHealthTransferEvent healthEvent = new ServerPortCoreHealthTransferEvent(player);
+						p.eventLink.sendEvent(targetServer, healthEvent);
+						
+						if(p.eventLink.sendEvent(targetServer, invEvent)) {
+							player.kickPlayer("[Serverport] You have teleported, please connect to : " + summonEvent.getTargetGlobalHostname());
+						} else {
+							SPItemStack.addInventory(player, invEvent.getServerPortCoreInventory().getSlots());
+						}
 					} else {
-						SPItemStack.addInventory(player, invEvent.getServerPortCoreInventory().getSlots());
+						player.kickPlayer("[Serverport] You have teleported, please connect to : " + summonEvent.getTargetGlobalHostname());
 					}
 				}
 			}

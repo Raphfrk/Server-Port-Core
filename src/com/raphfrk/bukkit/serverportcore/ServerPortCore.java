@@ -103,6 +103,8 @@ public class ServerPortCore extends JavaPlugin {
 		sm = getServer().getServicesManager();
 		sm.register(ServerPortCoreAPI.class, handler, this, ServicePriority.Normal);
 	}
+	
+	HashSet<String> invBlockedServers = new HashSet<String>();
 
 	private boolean readConfig() {
 
@@ -122,6 +124,12 @@ public class ServerPortCore extends JavaPlugin {
 		globalHostname = pf.getString("global_hostname", "");
 		String netherWorlds = pf.getString("nether_worlds","");
 		String normalWorlds = pf.getString("normal_worlds","");
+		
+		String creativeList = pf.getString("block_inv_transfer", "some_server1,some_server2");
+		String[] split = creativeList.split(",");
+		for (String server : split) {
+			invBlockedServers.add(server);
+		}
 
 		pf.save();
 
@@ -205,7 +213,7 @@ public class ServerPortCore extends JavaPlugin {
 					ServerPortLocation target;
 					if(eventLink.getEntryLocation("worlds", args[1]) != null) {
 						target = new SPLocation(null, args[1], null, null, null, null, null);
-					} else if(eventLink.getEntryLocation("worlds", args[1]) != null) {
+					} else if(eventLink.getEntryLocation("servers", args[1]) != null) {
 						target = new SPLocation(args[1], null, null, null, null, null, null);
 					} else {
 						commandSender.sendMessage(args[1] + " is not a known world or server");
